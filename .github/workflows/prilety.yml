@@ -1,7 +1,7 @@
-name: Přílety PRG – záloha každých 10 minut
+name: Přílety PRG – záloha každých 5 minut
 on:
   schedule:
-    - cron: "*/10 3-23 * * *"
+    - cron: "*/5 3-23 * * *"
   workflow_dispatch:
 permissions:
   contents: write
