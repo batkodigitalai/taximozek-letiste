@@ -388,10 +388,14 @@ async function fetchProxy(){
   if(!r.ok) throw new Error("HTTP "+r.status);
   const j = await r.json(); return Array.isArray(j)?{flights:j,generated:new Date().toISOString()}:j;
 }
+const RAW="https://raw.githubusercontent.com/batkodigitalai/taximozek-letiste/data/prilety.json";
 async function fetchBackup(){
-  const r = await fetch("prilety.json?t="+Date.now(), {cache:"no-store"});
-  if(!r.ok) throw new Error("HTTP "+r.status);
-  return r.json();
+  const urls=[RAW+"?t="+Date.now(), "prilety.json?t="+Date.now()];
+  const res=await Promise.allSettled(urls.map(u=>fetch(u,{cache:"no-store"}).then(r=>{ if(!r.ok) throw new Error("HTTP "+r.status); return r.json(); })));
+  const ok=res.filter(x=>x.status==="fulfilled"&&x.value&&x.value.flights).map(x=>x.value);
+  if(!ok.length) throw new Error("bez dat");
+  ok.sort((a,b)=>new Date(b.generated)-new Date(a.generated));
+  return ok[0];
 }
 function loadSnapshot(){
   try { return JSON.parse($("#snapshot").textContent); } catch(e){ return {flights:[],generated:null}; }
@@ -413,11 +417,15 @@ async function load(manual){
   if(manual) toast(source==="live"?"Živá tabule načtena":"Načtena záloha");
 }
 function srcBadge(){
-  const el=$("#src"); el.className="src "+source;
+  const el=$("#src");
   const age = generated ? Math.round((Date.now()-generated)/60000) : null;
-  const txt = source==="live" ? `živá tabule letiště · ${age<1?"právě teď":"před "+age+" min"}`
-            : source==="backup" ? `záloha (GitHub) · stav před ${age} min`
-            : `uložený snímek · ${generated?generated.toLocaleString("cs-CZ"):"?"} – bez připojení k tabuli`;
+  let cls, txt;
+  if(source==="live"){ cls="live"; txt=`živá tabule letiště · ${age<1?"právě teď":"před "+age+" min"}`; }
+  else if(source==="backup"){
+    if(age!=null && age<=8){ cls="live"; txt=`data z tabule letiště · před ${age<1?"chvílí":age+" min"}`; }
+    else { cls="backup"; txt=`pozor: data jsou stará ${age} min (stahování se zpozdilo)`; }
+  } else { cls="snap"; txt=`uložený snímek ${generated?generated.toLocaleString("cs-CZ"):"?"} – bez spojení s daty`; }
+  el.className="src "+cls;
   el.innerHTML=`<i></i><span>${esc(txt)}</span><span style="margin-left:auto;color:var(--acc);font-weight:700" id="reload">↻ obnovit</span>`;
   $("#reload").onclick=()=>load(true);
 }
