@@ -1,10 +1,11 @@
 name: Přílety PRG – záloha každých 5 minut
 on:
   schedule:
-    - cron: "*/5 3-23 * * *"
+    - cron: "*/5 * * * *"
   workflow_dispatch:
 permissions:
   contents: write
+  pages: write
 concurrency:
   group: prilety
   cancel-in-progress: true
@@ -20,10 +21,15 @@ jobs:
         run: python3 fetch_prilety.py prilety.json
       - name: Vložit snímek do index.html
         run: python3 build.py
-      - name: Uložit do repozitáře
+      - name: Uložit a vynutit nové nasazení webu
         run: |
           git config user.name "prilety-bot"
           git config user.email "bot@users.noreply.github.com"
           git add prilety.json index.html
-          git diff --cached --quiet || git commit -m "přílety $(date -u +%Y-%m-%dT%H:%M)Z"
-          git push
+          if git diff --cached --quiet; then
+            echo "beze změny"
+          else
+            git commit -m "přílety $(date -u +%Y-%m-%dT%H:%M)Z"
+            git push
+            curl -s -X POST -H "Authorization: Bearer ${{ github.token }}" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/${{ github.repository }}/pages/builds" || true
+          fi
