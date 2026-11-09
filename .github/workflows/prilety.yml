@@ -1,35 +1,50 @@
-name: Přílety PRG – záloha každých 5 minut
+name: Přílety PRG – průběžná záloha (každé 2 minuty)
 on:
   schedule:
-    - cron: "*/5 * * * *"
+    - cron: "*/20 * * * *"
   workflow_dispatch:
 permissions:
   contents: write
-  pages: write
+  actions: write
 concurrency:
   group: prilety
-  cancel-in-progress: true
+  cancel-in-progress: false
 jobs:
-  fetch:
+  loop:
     runs-on: ubuntu-latest
+    timeout-minutes: 70
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Stáhnout tabuli
-        run: python3 fetch_prilety.py prilety.json
-      - name: Vložit snímek do index.html
-        run: python3 build.py
-      - name: Uložit a vynutit nové nasazení webu
+      - name: Smyčka - tabule letiště každé 2 minuty po dobu 55 minut
         run: |
+          cp fetch_prilety.py /tmp/fetch_prilety.py
           git config user.name "prilety-bot"
           git config user.email "bot@users.noreply.github.com"
-          git add prilety.json index.html
-          if git diff --cached --quiet; then
-            echo "beze změny"
-          else
-            git commit -m "přílety $(date -u +%Y-%m-%dT%H:%M)Z"
-            git push
-            curl -s -X POST -H "Authorization: Bearer ${{ github.token }}" -H "Accept: application/vnd.github+json" "https://api.github.com/repos/${{ github.repository }}/pages/builds" || true
-          fi
+          git checkout -q --orphan data
+          git rm -rfq .
+          end=$(( $(date +%s) + 3300 ))
+          first=1
+          while [ $(date +%s) -lt $end ]; do
+            if python3 /tmp/fetch_prilety.py prilety.json; then
+              git add prilety.json
+              if [ $first = 1 ]; then
+                git commit -q -m "přílety" && first=0
+              else
+                git commit -q --amend -m "přílety $(date -u +%H:%M)"
+              fi
+              git push -q -f origin data || echo "push selhal"
+            else
+              echo "stažení selhalo"
+            fi
+            sleep 120
+          done
+      - name: Spustit další běh
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          sleep 30
+          gh workflow run prilety.yml --ref main
