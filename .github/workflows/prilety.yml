@@ -1,0 +1,29 @@
+name: Přílety PRG – záloha každých 10 minut
+on:
+  schedule:
+    - cron: "*/10 3-23 * * *"
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: prilety
+  cancel-in-progress: true
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Stáhnout tabuli
+        run: python3 fetch_prilety.py prilety.json
+      - name: Vložit snímek do index.html
+        run: python3 build.py
+      - name: Uložit do repozitáře
+        run: |
+          git config user.name "prilety-bot"
+          git config user.email "bot@users.noreply.github.com"
+          git add prilety.json index.html
+          git diff --cached --quiet || git commit -m "přílety $(date -u +%Y-%m-%dT%H:%M)Z"
+          git push
