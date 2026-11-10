@@ -1,0 +1,26 @@
+name: Přílety PRG – denní záznam do Google tabulky (každých 30 min)
+# Nahrazuje plánované úlohy v Claude „Přílety PRG – denní záznam“ (v :15 a v :45) – bez tokenů.
+# GitHub spouští plán v UTC a v době vytížení ho může o pár minut zpozdit.
+on:
+  schedule:
+    - cron: "15,45 * * * *"
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: zapis-tabule
+  cancel-in-progress: false
+jobs:
+  zapis:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install --quiet gspread google-auth
+      - name: Zápis plán vs. skutečnost
+        env:
+          GOOGLE_SA_JSON: ${{ secrets.GOOGLE_SA_JSON }}
+        run: python3 zapis_tabule.py
