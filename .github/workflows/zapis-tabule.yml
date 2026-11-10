@@ -23,4 +23,6 @@ jobs:
       - name: Zápis plán vs. skutečnost
         env:
           GOOGLE_SA_JSON: ${{ secrets.GOOGLE_SA_JSON }}
-        run: python3 zapis_tabule.py
+        run: |
+          if [ -z "$GOOGLE_SA_JSON" ]; then echo "Chybí secret GOOGLE_SA_JSON – zatím nezapisuji."; exit 0; fi
+          python3 zapis_tabule.py
