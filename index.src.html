@@ -14,7 +14,7 @@
 :root{
   --bg:#0b1220;--bg2:#111a2e;--card:#162038;--card2:#1b2742;--line:#243352;
   --tx:#eef2ff;--mut:#93a0bf;--dim:#5f6c8c;
-  --t1:#ff8a3d;--t2:#3dd6a3;--acc:#5b8cff;--red:#ff5c6c;--yel:#ffd166;--grn:#3dd6a3;
+  --t1:#ee7a2e;--t2:#35b48a;--acc:#5b8cff;--red:#ff5c6c;--yel:#ffd166;--grn:#3dd6a3;
   --r:16px;--safe-t:env(safe-area-inset-top,0px);--safe-b:env(safe-area-inset-bottom,0px);
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -130,6 +130,31 @@ nav button.on svg{stroke:var(--acc)}
 .toast{position:fixed;left:50%;bottom:calc(84px + var(--safe-b));transform:translateX(-50%);background:#fff;color:#000;padding:8px 14px;border-radius:999px;font-weight:700;font-size:13px;opacity:0;transition:.25s;z-index:40;pointer-events:none}
 .toast.on{opacity:1}
 @media (min-width:560px){.hero .big{font-size:42px}.kpis{grid-template-columns:repeat(6,1fr)}}
+
+.fl{grid-template-columns:72px 1fr auto}
+.fl.done{opacity:.45}
+.fl .t small{display:block;font-size:10px;color:var(--mut);margin-top:2px}
+.fl .t s{margin-top:1px}
+.dev.now{background:rgba(61,214,163,.16);color:var(--grn)}
+.wave{display:grid;grid-template-columns:78px 1fr 30px;gap:10px;align-items:center;padding:10px;border-radius:12px;background:var(--card2);margin:6px 0;border-left:4px solid var(--acc)}
+.wave.T1{border-left-color:var(--t1)}.wave.T2{border-left-color:var(--t2)}
+.wave .when b{display:block;font-size:21px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.05}
+.wave .when span{font-size:11px;color:var(--mut)}
+.wave .what b{font-size:15px}
+.wave .what small{color:var(--mut);font-size:12px}
+.wave .meter{height:6px;border-radius:3px;background:rgba(255,255,255,.07);margin:6px 0 4px;overflow:hidden}
+.wave .meter i{display:block;height:100%;border-radius:3px}
+.wave.T1 .meter i{background:var(--t1)}.wave.T2 .meter i{background:var(--t2)}
+.wave .d{font-size:12px;color:var(--mut)}
+.wave .star{text-align:center;font-size:20px;color:var(--yel)}
+.chart svg{width:100%;height:auto;display:block}
+.chart text{fill:var(--mut);font-size:19px;font-variant-numeric:tabular-nums}
+.chart .grid{stroke:var(--line);stroke-width:1}
+.chart .nowl{stroke:#fff;stroke-width:2;stroke-dasharray:5 4}
+.chart .hit{fill:transparent;cursor:pointer}
+.chart .selr{fill:rgba(255,255,255,.10)}
+.chart .pk{fill:#fff;font-weight:700}
+.chain{display:flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:12px;color:var(--mut);margin:6px 0}
 </style>
 </head>
 <body>
@@ -152,27 +177,22 @@ nav button.on svg{stroke:var(--acc)}
   </div>
 
   <div class="card">
-    <h2>Kam a kdy jet – nejlepší okna v příštích 4 h</h2>
-    <div id="windows"></div>
-    <div class="hint" id="winHint"></div>
+    <h2>Kdy být u terminálu · podle času</h2>
+    <div class="chips" id="waveChips"><button class="chip on" data-w="">T1 + T2</button><button class="chip t1" data-w="T1">T1 mimo Schengen</button><button class="chip t2" data-w="T2">T2 Schengen</button></div>
+    <div id="waves"></div>
+    <div class="hint" id="waveHint"></div>
   </div>
 
-  <div class="card">
-    <h2>Kolik vozů má kdy stát · příštích 6 hodin</h2>
-    <div class="cabs" id="cabs"></div>
-    <div class="hint">Počet vozů, které v té půlhodině najdou zákazníka. Když jich tam stojí víc, čeká se.</div>
-  </div>
-
-  <div class="card">
-    <h2>Odhad lidí vycházejících z haly · dnes po 30 min</h2>
-    <div class="bars" id="bars"></div>
-    <div class="axis"><span>0</span><span>6</span><span>12</span><span>18</span><span>24 h</span></div>
+  <div class="card chart">
+    <h2>Graf · kolik vozů najde zákazníka (po 15 min)</h2>
+    <div class="chips" id="rangeChips"><button class="chip on" data-r="12h">Teď + 11 h</button><button class="chip" data-r="day">Dnes celý den</button><button class="chip" data-r="tom">Zítra</button></div>
+    <div id="chart"></div>
     <div class="legend"><span><i style="background:var(--t1)"></i>T1 mimo Schengen</span><span><i style="background:var(--t2)"></i>T2 Schengen</span><span>· klepni na sloupec</span></div>
     <div id="barDetail"></div>
   </div>
 
   <div class="card">
-    <h2>Právě teď a příštích 90 minut</h2>
+    <h2>Lety seřazené podle času u taxi · teď a příští 2 hodiny</h2>
     <div class="list" id="soon"></div>
   </div>
 </section>
@@ -187,6 +207,7 @@ nav button.on svg{stroke:var(--acc)}
     <button class="chip" data-only="late">Jen zpožděné</button>
     <button class="chip" data-only="pending">Jen ještě ve vzduchu</button>
   </div>
+  <div class="chips"><button class="chip on" data-sort="due">Řadit: kdy být u taxi</button><button class="chip" data-sort="eta">Řadit: čas přistání</button></div>
   <div class="search"><input id="q" placeholder="Číslo letu, město, kód (FRA), dopravce…" autocomplete="off" inputmode="search"></div>
   <div class="hint" id="boardInfo"></div>
   <div class="list" id="board"></div>
@@ -218,9 +239,12 @@ nav button.on svg{stroke:var(--acc)}
 <!-- ===== NASTAVENÍ ===== -->
 <section class="view" id="v-set">
   <div class="card">
-    <h2>Jak počítám „kdy budou lidi venku“</h2>
-    <div class="row"><div><label>T2 Schengen – od přistání k východu</label><small>bez pasové kontroly, hlavně zavazadla</small></div><input type="range" id="offT2" min="10" max="60" step="5"><output id="offT2v"></output></div>
-    <div class="row"><div><label>T1 mimo Schengen – od přistání k východu</label><small>pasová kontrola + zavazadla</small></div><input type="range" id="offT1" min="20" max="90" step="5"><output id="offT1v"></output></div>
+    <h2>Jak počítám „kdy jsou lidi s kufry u taxi“</h2>
+    <div class="hint" style="margin-top:0">Výchozí je <b>očekávaný čas přistání z tabule</b> (dřívější přílet i zpoždění se počítá). K němu se přičte cesta: vystoupení, (T1) pasovka, čekání na kufry, cesta ke stanovišti taxi. Všechno jsou <b>odhady</b> – doladíš podle vlastních zkušeností.</div>
+    <div class="row"><div><label>T2 Schengen – přistání → hlavní proud u taxi</label><small>vystoupení, kufry, cesta ke stanovišti</small></div><input type="range" id="offT2" min="20" max="75" step="1"><output id="offT2v"></output></div>
+    <div class="row"><div><label>T1 mimo Schengen – přistání → hlavní proud u taxi</label><small>navíc pasová kontrola</small></div><input type="range" id="offT1" min="30" max="120" step="1"><output id="offT1v"></output></div>
+    <div class="row"><div><label>Rozptyl lidí (± min)</label><small>první lidi u taxi = hlavní proud − rozptyl, poslední +1,5×</small></div><input type="range" id="spread" min="4" max="25" step="1"><output id="spreadv"></output></div>
+    <div class="row"><div><label>Předstih taxikáře</label><small>buď u terminálu tolik minut před prvními lidmi</small></div><input type="range" id="lead" min="0" max="20" step="1"><output id="leadv"></output></div>
     <div class="row"><div><label>Obsazenost letadel</label><small>násobek typické obsazenosti dopravce (1,0 = tabulka; v sezóně 1,1)</small></div><input type="range" id="lfMul" min="0.6" max="1.15" step="0.05"><output id="lfMulv"></output></div>
     <div class="row"><div><label>Kolik lidí si bere taxi</label><small>násobek podílu podle trasy (dálkové/byznys 15–22 %, low-cost 5–8 %, dovolenkové 3–5 %)</small></div><input type="range" id="shareMul" min="0.5" max="2" step="0.1"><output id="shareMulv"></output></div>
     <div class="row"><div><label>Osob na jeden vůz</label><small>páry, rodiny → průměr</small></div><input type="range" id="perCab" min="1" max="3" step="0.1"><output id="perCabv"></output></div>
@@ -231,7 +255,7 @@ nav button.on svg{stroke:var(--acc)}
   </div>
   <div class="card">
     <h2>O aplikaci</h2>
-    <div class="hint">Zdroj: oficiální příletová tabule Letiště Václava Havla Praha (api.prg.aero). Tabule letiště neposílá typ letadla – doplňuji <b>typický stroj dopravce</b> na linkách do Prahy (tabulka 50 dopravců). Obsazenost, kupní síla trasy a podíl lidí, kteří si vezmou taxi, jsou <b>odhady</b>, ne údaj letiště; násobky si upravíš nahoře podle vlastní zkušenosti. T1 = lety mimo Schengen (Londýn, Istanbul, Dubaj, Tel Aviv…), T2 = Schengen.<br><br>Přidej si stránku na plochu telefonu (Chrome → ⋮ → Přidat na plochu) a máš ji jako appku.<br><br>BATKO.DIGITAL.AI pro TaxiMozek · verze 1.0</div>
+    <div class="hint">Zdroj: oficiální příletová tabule Letiště Václava Havla Praha (api.prg.aero). Tabule letiště neposílá typ letadla – doplňuji <b>typický stroj dopravce</b> na linkách do Prahy (tabulka 50 dopravců). Obsazenost, kupní síla trasy a podíl lidí, kteří si vezmou taxi, jsou <b>odhady</b>, ne údaj letiště; násobky si upravíš nahoře podle vlastní zkušenosti. T1 = lety mimo Schengen (Londýn, Istanbul, Dubaj, Tel Aviv…), T2 = Schengen.<br><br>Přidej si stránku na plochu telefonu (Chrome → ⋮ → Přidat na plochu) a máš ji jako appku.<br><br>BATKO.DIGITAL.AI pro TaxiMozek · verze 2.0 · časy podle očekávaného přistání, řazeno podle času u taxi</div>
   </div>
 </section>
 
@@ -250,7 +274,9 @@ nav button.on svg{stroke:var(--acc)}
 <script>
 /* ============ KONFIGURACE ============ */
 const API = "https://api.prg.aero/arrivals-shorttime";
-const DEF = {offT1:45, offT2:25, lfMul:1, shareMul:1, perCab:1.5, refresh:2, proxy:""};
+const DEF = {offT1:60, offT2:38, spread:12, lead:5, lfMul:1, shareMul:1, perCab:1.5, refresh:2, proxy:""};
+const KERN=[[-1,.12],[-.5,.23],[0,.30],[.5,.20],[1,.10],[1.5,.05]]; // rozložení lidí kolem hlavního proudu (násobky rozptylu, podíl)
+const SETK=["offT1","offT2","spread","lead","lfMul","shareMul","perCab","refresh"];
 const PROXY_DEFAULT = ""; // např. https://batkoai.com/prilety/prilety-proxy.php – nastaví se v Nastavení
 /* ===== MODEL LETADEL A CESTUJÍCÍCH (odhady – typický stroj dopravce na linkách do PRG) =====
    type=typ letadla, seats=míst, lf=obsazenost, share=podíl cestujících, kteří si vezmou taxi, power=kupní síla 1–5 */
@@ -319,8 +345,9 @@ const _dbg = (location.search.match(/[?&]t=(\d{1,2}):(\d{2})/)||null);
 function NOW(){ const d=new Date(); if(_dbg){ d.setHours(+_dbg[1],+_dbg[2],0,0); } return d; }
 /* ============ STAV ============ */
 let cfg = Object.assign({}, DEF);
-try { Object.assign(cfg, JSON.parse(localStorage.getItem("tm_cfg")||"{}")); } catch(e){}
-let flights = [], generated = null, source = "snap", lastLoad = 0, selDay = 0, term = "", only = "", query = "", timer = null, selBar = null;
+try { const o=JSON.parse(localStorage.getItem("tm_cfg")||"{}"); if(o.proxy) cfg.proxy=o.proxy; } catch(e){}
+try { Object.assign(cfg, JSON.parse(localStorage.getItem("tm_cfg2")||"{}")); } catch(e){}
+let rawFlights = [], wTerm = "", chartRange = "12h", sortBy = "due", flights = [], generated = null, source = "snap", lastLoad = 0, selDay = 0, term = "", only = "", query = "", timer = null, selBar = null;
 
 /* ============ POMOCNÉ ============ */
 const $ = s => document.querySelector(s);
@@ -338,20 +365,25 @@ const fmtDate = d => d.getDate()+". "+(d.getMonth()+1)+". ";
 function cityOf(dest){ return (dest||"").replace(/\s*\([A-Z]{3}\)\s*$/,""); }
 
 function normalize(raw){
+  const now=NOW();
   return raw.filter(x=>x.isMainFlight!==false).map(x=>{
     const plan = parseT(x.time), exp = parseT(x["time-new"]);
     const st = (x.state||"-").trim();
     const landed = /přistál|přistálo|landed/i.test(st);
     const cancelled = /zrušen|cancel/i.test(st);
     const diverted = /odklon|divert/i.test(st);
-    const dev = exp ? Math.round((exp-plan)/60000) : null;
+    /* tabule píše do stavu skutečný čas („Přistálo 13:37“) i očekávaný („Předpoklad 14:05“) – to je nejpřesnější údaj */
+    const mt = st.match(/(\d{1,2}):(\d{2})/); let act=null;
+    if (mt && (landed || /předpoklad/i.test(st))) { act=new Date(plan); act.setHours(+mt[1],+mt[2],0,0); if(act-plan>43200000) act=addMin(act,-1440); else if(plan-act>43200000) act=addMin(act,1440); }
+    const best = act||exp;
+    const dev = best ? Math.round((best-plan)/60000) : null;
     const comp = x.company||"";
     const cargo = CARGO.test(comp);
     const code = x["destination-id"]||"";
     let m = Object.assign({}, (CARRIERS.find(([re])=>re.test(comp))||[null,DEF_AC])[1]);
     let power = m.power, share = m.share;
     if (POWER5.has(code)) { power = Math.max(power,4); share *= 1.15; }
-    if (HOLIDAY.has(code)) { power = Math.min(power,2); share *= 0.6; }   // charter, dovolenkáři, autobusy
+    if (HOLIDAY.has(code)) { power = Math.min(power,2); share *= 0.6; }
     if (BIZ_LCC_CODES.has(code)) { share *= 0.9; }
     const lf = Math.min(1, m.lf * cfg.lfMul);
     share = Math.min(.5, share * cfg.shareMul);
@@ -360,10 +392,16 @@ function normalize(raw){
     const taxi = Math.round(pax * share);
     const cabs = Math.ceil(taxi / cfg.perCab);
     const t = x.terminal==="T1"?"T1":(x.terminal==="T2"?"T2":"?");
-    const eta = exp||plan;
-    const out = addMin(eta, t==="T1"?cfg.offT1:cfg.offT2);
-    return {plan,exp,eta,out,dev,st,landed,cancelled,diverted,cargo,pax,ac:m.type,seats:m.seats,lf,share,power,taxi,cabs,no:x.flyNumber||"",dest:x.destination||"",code,city:cityOf(x.destination),comp,term:t,color:x["state-color"]||""};
-  }).sort((a,b)=>a.eta-b.eta);
+    /* očekávaný čas přistání: z tabule (dřív / zpoždění); oprava, když stav neodpovídá hodinám */
+    let eta = best||plan;
+    if (landed && eta>now) eta = now;                                   // přistál dřív, než hlásil čas
+    else if (!landed && !cancelled && eta<now && now-eta<=30*60000) eta = now; // očekávaný čas minul, ale ještě nepřistál → nejdřív teď
+    const out = addMin(eta, t==="T1"?cfg.offT1:cfg.offT2);               // hlavní proud lidí s kufry u taxi
+    const first = addMin(out, -cfg.spread), last = addMin(out, cfg.spread*1.5);
+    const due = addMin(first, -cfg.lead);                                // taxikář má být u terminálu
+    const pts = KERN.map(([k,w])=>[addMin(out,k*cfg.spread),w]);
+    return {plan,exp:best,eta,out,first,last,due,pts,dev,st,landed,cancelled,diverted,cargo,pax,ac:m.type,seats:m.seats,lf,share,power,taxi,cabs,no:x.flyNumber||"",dest:x.destination||"",code,city:cityOf(x.destination),comp,term:t,color:x["state-color"]||""};
+  }).sort((a,b)=>a.due-b.due);
 }
 
 /* ============ NAČÍTÁNÍ DAT ============ */
@@ -410,7 +448,7 @@ async function load(manual){
       catch(e2){ data = loadSnapshot(); source="snap"; }
     }
   }
-  flights = normalize(data.flights||[]);
+  rawFlights = data.flights||[]; flights = normalize(rawFlights);
   generated = data.generated ? new Date(data.generated) : null;
   lastLoad = Date.now();
   renderAll();
@@ -431,70 +469,77 @@ function srcBadge(){
 }
 
 /* ============ VÝPOČTY ============ */
-function dayFlights(k){ return flights.filter(f=>dayKey(f.plan)===k || dayKey(f.eta)===k); }
-function slots(k){ // 48 půlhodin podle času východu
-  const s = Array.from({length:48},()=>({T1:0,T2:0,x1:0,x2:0,n:0,fl:[]}));
-  for(const f of flights){ if(f.cancelled||f.cargo) continue; if(dayKey(f.out)!==k) continue;
-    const i=f.out.getHours()*2+(f.out.getMinutes()>=30?1:0); s[i][f.term==="T1"?"T1":"T2"]+=f.pax; s[i][f.term==="T1"?"x1":"x2"]+=f.taxi; s[i].n++; s[i].fl.push(f); }
-  return s;
+const f15 = d => { const t=new Date(d); t.setMinutes(Math.floor(t.getMinutes()/15)*15,0,0); return t; };
+function series(start,n){ // n čtvrthodin od start: lidé s kufry u taxi (rozložení kolem hlavního proudu)
+  const a=Array.from({length:n},()=>({x1:0,x2:0,p1:0,p2:0,fl:new Map()}));
+  for(const f of flights){ if(f.cancelled||f.cargo) continue;
+    for(const q of f.pts){ const i=Math.floor((q[0]-start)/900000); if(i<0||i>=n) continue;
+      const z=a[i], T=f.term==="T1"?1:2; z["x"+T]+=f.taxi*q[1]; z["p"+T]+=f.pax*q[1]; z.fl.set(f,(z.fl.get(f)||0)+q[1]); } }
+  return a;
+}
+function wsum(t,e){
+  const r={p:0,p1:0,x:0,x1:0,fl:[]};
+  for(const f of flights){ if(f.cancelled||f.cargo||f.last<t||f.first>=e) continue;
+    let w=0; for(const q of f.pts){ if(q[0]>=t&&q[0]<e) w+=q[1]; } if(!w) continue;
+    r.p+=f.pax*w; r.x+=f.taxi*w; if(f.term==="T1"){ r.p1+=f.pax*w; r.x1+=f.taxi*w; } r.fl.push({f,w}); }
+  r.p2=r.p-r.p1; r.x2=r.x-r.x1; r.c1=Math.round(r.x1/cfg.perCab); r.c2=Math.round(r.x2/cfg.perCab); r.c=r.c1+r.c2;
+  return r;
 }
 function bestWindows(from, hours, n){
-  // klouzavé 30min okno po 5 min, podle lidí u východu; vrátí n nepřekrývajících se
-  const to = addMin(from, hours*60);
-  const cand = flights.filter(f=>!f.cancelled&&!f.cargo&&f.out>=from&&f.out<=to);
-  const res=[]; const used=[];
-  const step=5;
-  for(let t=new Date(from); t<=to; t=addMin(t,step)){
-    const e=addMin(t,30);
-    const inW=cand.filter(f=>f.out>=t&&f.out<e); if(!inW.length) continue;
-    const p=inW.reduce((a,f)=>a+f.pax,0), p1=inW.filter(f=>f.term==="T1").reduce((a,f)=>a+f.pax,0);
-    const x=inW.reduce((a,f)=>a+f.taxi,0), x1=inW.filter(f=>f.term==="T1").reduce((a,f)=>a+f.taxi,0);
-    res.push({t,e,p,p1,p2:p-p1,x,x1,x2:x-x1,c:Math.ceil(x/cfg.perCab),c1:Math.ceil(x1/cfg.perCab),c2:Math.ceil((x-x1)/cfg.perCab),fl:inW});
-  }
+  const to=addMin(from,hours*60), res=[];
+  for(let t=new Date(from); t<=to; t=addMin(t,5)){ const e=addMin(t,30); const r=wsum(t,e); if(r.x<=0) continue;
+    res.push({t,e,p:r.p,p1:r.p1,p2:r.p2,x:r.x,x1:r.x1,x2:r.x2,c:r.c,c1:r.c1,c2:r.c2,fl:r.fl.map(o=>o.f)}); }
   res.sort((a,b)=>b.x-a.x);
-  const out=[];
-  for(const w of res){ if(out.some(o=>w.t<o.e&&w.e>o.t)) continue; out.push(w); if(out.length>=n) break; }
+  const out=[]; for(const w of res){ if(out.some(o=>w.t<o.e&&w.e>o.t)) continue; out.push(w); if(out.length>=n) break; }
   return out.sort((a,b)=>a.t-b.t);
+}
+function waves(){ // vlny po 15 min na příštích 5 h, po terminálech
+  const t0=f15(NOW()), s=series(t0,20), out=[];
+  s.forEach((z,i)=>{ const t=addMin(t0,i*15);
+    [["T1",z.x1],["T2",z.x2]].forEach(([T,x])=>{ const c=Math.round(x/cfg.perCab); if(c<1) return;
+      const fl=[...z.fl.entries()].filter(([f])=>f.term===T).sort((a,b)=>b[0].taxi*b[1]-a[0].taxi*a[1]);
+      out.push({T,t,e:addMin(t,15),c,x,be:addMin(t,-cfg.lead),fl}); }); });
+  return out.sort((a,b)=>a.be-b.be||a.T.localeCompare(b.T));
 }
 function devBadge(f){
   if(f.cancelled) return `<span class="dev late">ZRUŠEN</span>`;
   if(f.dev==null) return `<span class="dev ok">dle plánu</span>`;
-  if(f.dev>=10) return `<span class="dev late">+${f.dev} min</span>`;
-  if(f.dev<=-10) return `<span class="dev early">${f.dev} min</span>`;
+  if(f.dev>=10) return `<span class="dev late">zpoždění +${f.dev} min</span>`;
+  if(f.dev<=-10) return `<span class="dev early">dřív ${f.dev} min</span>`;
   return `<span class="dev ok">${f.dev>0?"+":""}${f.dev} min</span>`;
 }
 const pow = p => `<span class="pw" title="kupní síla">${"●".repeat(p)}${"○".repeat(5-p)}</span>`;
 function flRow(f, hit){
-  const now=NOW();
-  const cls = f.cancelled?"cancel":(f.landed?"landed":"");
-  const mins = Math.round((f.eta-now)/60000);
-  const when = f.landed ? "přistál" : (mins<=0 ? "přistává" : (mins<90 ? `za ${mins} min` : hhmm(f.eta)));
-  return `<div class="fl ${cls} ${hit?"hit":""}">
-    <div class="t"><b>${hhmm(f.eta)}</b>${f.exp&&Math.abs(f.dev)>=5?`<s>${hhmm(f.plan)}</s>`:""}</div>
-    <div class="m"><b>${esc(f.city)} <span class="tag ${f.term}">${f.term}</span></b><span>${esc(f.no)} · ${esc(f.comp)}${f.cargo?" · cargo":""}</span>
-      ${f.cancelled||f.cargo?"":`<span class="out">${esc(f.ac)} · ${f.seats} míst · ${Math.round(f.lf*100)} % ≈ <b>${f.pax} lidí</b> ${pow(f.power)}</span><span class="out">venku ≈ <b>${hhmm(f.out)}</b> · taxi ≈ <b>${f.taxi} os.</b> → <b>${f.cabs} vozů</b></span>`}</div>
-    <div class="r"><b>${esc(when)}</b>${devBadge(f)}</div></div>`;
+  const now=NOW(), live=!f.cancelled&&!f.cargo;
+  const done = live && now>f.last, emerging = live && now>=f.first && now<=f.last;
+  const dm = Math.round((f.due-now)/60000), am = Math.round((f.eta-now)/60000);
+  const st = f.cancelled?"zrušen":(f.cargo?"cargo":(done?"hotovo":(emerging?"lidi vycházejí":(dm<90?`buď tam za ${dm} min`:"buď tam "+hhmm(f.due)))));
+  const air = f.landed?"přistál":(am<=0?"přistává":(am<90?`přistane za ${am} min`:`přistane ${hhmm(f.eta)}`));
+  const left = live ? `<b>${hhmm(f.due)}</b><small>buď u ${f.term}</small>` : `<b>${hhmm(f.eta)}</b>`;
+  return `<div class="fl ${f.cancelled?"cancel":""} ${done?"done":""} ${hit?"hit":""}">
+    <div class="t">${left}</div>
+    <div class="m"><b>${esc(f.city)} <span class="tag ${f.term}">${f.term}</span></b>
+      <span>${esc(f.no)} · ${esc(f.comp)}${f.cargo?" · cargo":""}</span>
+      <span class="out">${air} <b>${hhmm(f.eta)}</b>${f.exp&&Math.abs(f.dev)>=5?` <s style="color:var(--dim)">plán ${hhmm(f.plan)}</s>`:""}</span>
+      ${live?`<span class="out">${esc(f.ac)} · ${f.seats} míst · ${Math.round(f.lf*100)} % ≈ <b>${f.pax} lidí</b> ${pow(f.power)}</span><span class="out">u taxi s kufry ≈ <b>${hhmm(f.out)}</b> (${hhmm(f.first)}–${hhmm(f.last)}) · taxi ≈ <b>${f.taxi} os.</b> → <b>${f.cabs} vozů</b></span>`:""}</div>
+    <div class="r"><b>${esc(st)}</b>${devBadge(f)}</div></div>`;
 }
 
 /* ============ RENDER: TEĎ ============ */
 function renderNow(){
   const now=NOW(), k=todayKey();
-  const today=dayFlights(k).filter(f=>dayKey(f.plan)===k);
+  const today=flights.filter(f=>dayKey(f.plan)===k);
   const act=today.filter(f=>!f.cancelled&&!f.cargo);
-  const landed=act.filter(f=>f.landed||f.eta<now).length;
+  const landed=act.filter(f=>f.landed||f.eta<=now).length;
   const late=today.filter(f=>f.dev>=15&&!f.landed).length;
   const canc=today.filter(f=>f.cancelled).length;
-  // lidé vycházející v příštích 30 min
-  const soonOut=flights.filter(f=>!f.cancelled&&!f.cargo&&f.out>=now&&f.out<addMin(now,30));
-  const p=soonOut.reduce((a,f)=>a+f.pax,0), p1=soonOut.filter(f=>f.term==="T1").reduce((a,f)=>a+f.pax,0);
-  const x=soonOut.reduce((a,f)=>a+f.taxi,0), x1=soonOut.filter(f=>f.term==="T1").reduce((a,f)=>a+f.taxi,0);
-  const c1=Math.ceil(x1/cfg.perCab), c2=Math.ceil((x-x1)/cfg.perCab);
-  const airSoon=flights.filter(f=>!f.cancelled&&!f.cargo&&f.eta>=now&&f.eta<addMin(now,60));
-  const bestT = p1>p-p1?"T1":"T2";
-  const nextF = act.find(f=>f.eta>now) || flights.find(f=>!f.cancelled&&!f.cargo&&f.eta>now);
-  const nextWave = nextF ? flights.filter(f=>!f.cancelled&&!f.cargo&&f.eta>=nextF.eta&&f.eta<addMin(nextF.eta,60)) : [];
-  $("#heroBig").innerHTML = p ? `≈ ${c1+c2} vozů do 30 min` : (airSoon.length?`${airSoon.length} letadel do hodiny`:(nextF?`Další vlna ${hhmm(nextF.eta)}`:"Klid na tabuli"));
-  $("#heroSub").textContent = p ? `tolik taxíků má teď smysl u letiště: T1 ≈ ${c1} vozů (${x1} lidí na taxi z ${p1}), T2 ≈ ${c2} vozů (${x-x1} z ${p-p1}) → teď spíš ${c1>c2?"T1":"T2"}` : (airSoon.length?`první lidi venku ≈ ${hhmm(airSoon[0].out)}`:(nextF?`${nextF.city} (${nextF.term}) a v první hodině dalších ${nextWave.length-1} letů · lidi venku od ≈ ${hhmm(nextF.out)} · do té doby klid`:"Nejbližší přílety najdeš níže."));
+  const cur=wsum(now,addMin(now,30));
+  const W=waves().filter(w=>w.e>now);
+  const strong=W.length?[...W].sort((a,b)=>b.c-a.c||a.be-b.be)[0]:null;
+  const nxt=W[0];
+  $("#heroBig").innerHTML = cur.c ? `≈ ${cur.c} vozů u taxi do 30 min` : (nxt?`Další vlna: ${nxt.T} v ${hhmm(nxt.be)}`:"Klid na tabuli");
+  $("#heroSub").textContent = (cur.c ? `lidi s kufry u stanoviště: T1 ≈ ${cur.c1} vozů, T2 ≈ ${cur.c2} vozů → teď spíš ${cur.c1>cur.c2?"T1":"T2"}. ` : (nxt?`lidi s kufry u taxi od ≈ ${hhmm(addMin(nxt.be,cfg.lead))}, do té doby klid. `:""))
+    + (strong?`Nejsilnější vlna: ${strong.T} v ${hhmm(strong.be)} (≈ ${strong.c} vozů).`:"");
   $("#kpis").innerHTML = `
     <div class="kpi"><b>${act.length}</b><span>letů dnes</span></div>
     <div class="kpi"><b>${landed}</b><span>už přistálo</span></div>
@@ -503,37 +548,53 @@ function renderNow(){
     <div class="kpi t2"><b>${act.filter(f=>f.term==="T2").length}</b><span>T2 Schengen</span></div>
     <div class="kpi"><b style="color:${late?"var(--red)":"inherit"}">${late}${canc?` <small style="font-size:12px;color:var(--red)">+${canc}✕</small>`:""}</b><span>zpožděno ≥15 min</span></div>`;
 
-  const w=bestWindows(now,4,3);
-  const rank = [...w].sort((a,b)=>Math.max(b.c1,b.c2)-Math.max(a.c1,a.c2));
-  $("#windows").innerHTML = w.length ? w.map((x)=>{
-    const i = rank.indexOf(x);
-    const T = x.x1>x.x2?"T1":"T2";
-    const arrive = addMin(x.t,-10);
-    const cities=[...new Set(x.fl.map(f=>f.city))].slice(0,4).join(", ");
-    return `<div class="win ${T}"><div class="when"><b>${hhmm(arrive)}</b><span>buď u ${T}</span></div>
-      <div class="what"><b>${hhmm(x.t)}–${hhmm(x.e)}: místo pro ≈ ${T==="T1"?x.c1:x.c2} vozů</b><div class="d">${x.fl.length} letadel, ≈ ${x.p} lidí, z nich ≈ ${x.x} na taxi · ${esc(cities)}${x.fl.length>4?"…":""}<br>T1 ≈ ${x.c1} vozů / T2 ≈ ${x.c2} vozů</div></div>
-      <div class="score"><b>${i===0?"★":"#"+(i+1)}</b><span>${i===0?"nejlepší":"okno"}</span></div></div>`;
-  }).join("") : `<div class="empty">V příštích 4 hodinách už nic podstatného nepřistává.</div>`;
-  $("#winHint").textContent = w.length ? "„Buď u“ = 10 min před tím, než se začnou hrnout lidi. Vozy = lidí na taxi ÷ "+cfg.perCab+" osoby na vůz. Vše odhad z typu letadla, obsazenosti a kupní síly trasy." : "";
-  // kolik vozů kdy – příštích 6 h po půlhodinách
-  const sl=slots(k), nowI2=now.getHours()*2+(now.getMinutes()>=30?1:0);
-  const rows=[]; const mx=Math.max(1,...sl.slice(nowI2,nowI2+12).map(z=>Math.max(z.x1,z.x2)/cfg.perCab));
-  for(let i=nowI2;i<Math.min(48,nowI2+12);i++){ const z=sl[i]; const a=Math.ceil(z.x1/cfg.perCab), b=Math.ceil(z.x2/cfg.perCab);
-    rows.push(`<div class="t ${i===nowI2?"now":""}">${pad(Math.floor(i/2))}:${i%2?"30":"00"}</div><div>${a?`<div class="b b1" style="width:${Math.max(14,Math.round(a/mx*100))}%">${a}</div>`:'<span style="color:var(--dim)">–</span>'}</div><div>${b?`<div class="b b2" style="width:${Math.max(14,Math.round(b/mx*100))}%">${b}</div>`:'<span style="color:var(--dim)">–</span>'}</div>`); }
-  $("#cabs").innerHTML = `<div class="h">od</div><div class="h">T1 vozů</div><div class="h">T2 vozů</div>`+rows.join("");
+  // vlny podle času
+  const shown=W.filter(w=>!wTerm||w.T===wTerm);
+  const top=new Set([...shown].sort((a,b)=>b.c-a.c||a.be-b.be).slice(0,3).filter(w=>w.c>=2));
+  const mxc=Math.max(1,...shown.map(w=>w.c));
+  $("#waves").innerHTML = shown.length ? shown.slice(0,14).map(w=>{
+    const fl=w.fl.slice(0,3).map(([f])=>`${esc(f.city)} ${esc(f.no)} (přist. ${hhmm(f.eta)}${f.dev>=10?`, +${f.dev}`:(f.dev<=-10?`, ${f.dev}`:"")})`).join(" · ");
+    const nowTag = w.be<=now;
+    return `<div class="wave ${w.T}"><div class="when"><b>${nowTag?"TEĎ":hhmm(w.be)}</b><span>buď u ${w.T}</span></div>
+      <div class="what"><b>≈ ${w.c} ${w.c===1?"vůz":(w.c<5?"vozy":"vozů")}</b> <small>lidi s kufry u taxi ${hhmm(w.t)}–${hhmm(w.e)}</small><div class="meter"><i style="width:${Math.round(w.c/mxc*100)}%"></i></div><div class="d">${fl}</div></div>
+      <div class="star">${top.has(w)?"★":""}</div></div>`;
+  }).join("") : `<div class="empty">V příštích 5 hodinách tady nic podstatného.</div>`;
+  $("#waveHint").textContent = `„Buď u“ = ${cfg.lead} min před prvními lidmi s kufry u taxi. Čas se počítá z očekaného přistání (zpoždění i dřívější přílet) + cesta k taxi. Vozy = lidi na taxi ÷ ${cfg.perCab} os. na vůz. Vše odhad.`;
 
-  // bars
-  const s=slots(k), max=Math.max(1,...s.map(x=>x.T1+x.T2));
-  const nowI=now.getHours()*2+(now.getMinutes()>=30?1:0);
-  $("#bars").innerHTML = s.map((x,i)=>`<div class="bar ${i<nowI?"past":""} ${i===nowI?"now":""} ${selBar===i?"sel":""}" data-i="${i}" title="${pad(Math.floor(i/2))}:${i%2?"30":"00"}">
-    <i class="s2" style="height:${Math.round(x.T2/max*96)}px"></i><i class="s1" style="height:${Math.round(x.T1/max*96)}px"></i></div>`).join("");
-  $$("#bars .bar").forEach(b=>b.onclick=()=>{selBar=+b.dataset.i; renderNow();});
-  if(selBar!=null){ const x=s[selBar]; const h=Math.floor(selBar/2), m=selBar%2?"30":"00";
-    $("#barDetail").innerHTML = `<div class="hint"><b>${pad(h)}:${m}–${pad(h)}:${m==="00"?"30":"59"}</b> · lidi venku ≈ ${x.T1+x.T2} (T1 ${x.T1} / T2 ${x.T2}) z ${x.n} letů · na taxi ≈ ${x.x1+x.x2} → T1 ${Math.ceil(x.x1/cfg.perCab)} / T2 ${Math.ceil(x.x2/cfg.perCab)} vozů</div><div class="list">${x.fl.map(f=>flRow(f)).join("")||'<div class="empty">nic</div>'}</div>`; }
+  renderChart();
+
+  const soon=flights.filter(f=>!f.cancelled&&!f.cargo&&f.last>=now&&f.due<=addMin(now,120)).sort((a,b)=>a.due-b.due);
+  $("#soon").innerHTML = soon.length ? soon.map(f=>flRow(f)).join("") : `<div class="empty">Nic v příštích 2 hodinách.</div>`;
+}
+function renderChart(){
+  const now=NOW(); let start,n;
+  if(chartRange==="12h"){ start=addMin(f15(now),-60); n=48; }
+  else { const d=new Date(now); if(chartRange==="tom") d.setDate(d.getDate()+1); d.setHours(0,0,0,0); start=d; n=96; }
+  const s=series(start,n), tot=s.map(z=>(z.x1+z.x2)/cfg.perCab);
+  const mx0=Math.max(1,...tot), steps=[4,6,8,10,12,16,20,24,30,40,50,60,80,100,150,200];
+  const mx=steps.find(v=>v>=mx0)||Math.ceil(mx0/50)*50;
+  const W=700,H=270,L=44,R=8,T=26,B=34, pw=W-L-R, ph=H-T-B, bw=pw/n;
+  let g="";
+  [0,.5,1].forEach(r=>{ const y=T+ph*(1-r); g+=`<line class="grid" x1="${L}" x2="${W-R}" y1="${y}" y2="${y}"/><text x="${L-6}" y="${y+6}" text-anchor="end">${Math.round(mx*r)}</text>`; });
+  const lab=n===48?2:3;
+  s.forEach((z,i)=>{ const t=addMin(start,i*15), x=L+i*bw;
+    if(t.getMinutes()===0&&t.getHours()%lab===0) g+=`<text x="${x}" y="${H-10}" text-anchor="middle">${pad(t.getHours())}</text>`;
+    const h1=z.x1/cfg.perCab/mx*ph, h2=z.x2/cfg.perCab/mx*ph;
+    if(selBar===i) g+=`<rect class="selr" x="${x}" y="${T}" width="${bw}" height="${ph}"/>`;
+    if(h1>.5) g+=`<rect x="${x+.5}" y="${T+ph-h1}" width="${Math.max(1,bw-1)}" height="${h1}" rx="1.5" fill="var(--t1)"/>`;
+    if(h2>.5) g+=`<rect x="${x+.5}" y="${T+ph-h1-h2}" width="${Math.max(1,bw-1)}" height="${Math.max(.5,h2-(h1>2&&h2>2?2:0))}" rx="1.5" fill="var(--t2)"/>`;
+    g+=`<rect class="hit" data-i="${i}" x="${x}" y="${T}" width="${bw}" height="${ph}"><title>${hhmm(t)}–${hhmm(addMin(t,15))} · T1 ≈ ${Math.round(z.x1/cfg.perCab)} / T2 ≈ ${Math.round(z.x2/cfg.perCab)} vozů</title></rect>`; });
+  // popisky nejsilnějších vrcholů
+  const idx=tot.map((v,i)=>[v,i]).sort((a,b)=>b[0]-a[0]); const pk=[];
+  for(const [v,i] of idx){ if(v<1) break; if(pk.some(j=>Math.abs(j-i)<5)) continue; pk.push(i); if(pk.length>=3) break; }
+  pk.forEach(i=>{ const x=L+i*bw+bw/2, y=T+ph-tot[i]/mx*ph; g+=`<text class="pk" x="${x}" y="${Math.max(18,y-6)}" text-anchor="middle">${Math.round(tot[i])}</text>`; });
+  const ni=(now-start)/900000; if(ni>=0&&ni<=n){ const x=L+ni*bw; g+=`<line class="nowl" x1="${x}" x2="${x}" y1="${T-6}" y2="${T+ph}"/><text x="${x}" y="${T-10}" text-anchor="middle" style="fill:#fff;font-weight:700">teď</text>`; }
+  $("#chart").innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Počet vozů, které najdou zákazníka, po 15 minutách">${g}</svg>`;
+  $$("#chart .hit").forEach(r=>r.onclick=()=>{ selBar=(selBar===+r.dataset.i)?null:+r.dataset.i; renderChart(); });
+  if(selBar!=null&&s[selBar]){ const z=s[selBar], t=addMin(start,selBar*15);
+    const fl=[...z.fl.entries()].sort((a,b)=>b[0].taxi*b[1]-a[0].taxi*a[1]).slice(0,8).map(([f])=>flRow(f)).join("");
+    $("#barDetail").innerHTML=`<div class="hint"><b>${hhmm(t)}–${hhmm(addMin(t,15))}</b> · lidi s kufry u taxi ≈ ${Math.round(z.p1+z.p2)} (T1 ${Math.round(z.p1)} / T2 ${Math.round(z.p2)}) · na taxi ≈ ${Math.round(z.x1+z.x2)} → <b>T1 ${Math.round(z.x1/cfg.perCab)} / T2 ${Math.round(z.x2/cfg.perCab)} vozů</b> · taxikář má být u terminálu v ${hhmm(addMin(t,-cfg.lead))}</div><div class="list">${fl||'<div class="empty">nic</div>'}</div>`; }
   else $("#barDetail").innerHTML="";
-
-  const soon=flights.filter(f=>!f.cancelled&&f.eta>=addMin(now,-20)&&f.eta<=addMin(now,90));
-  $("#soon").innerHTML = soon.length ? soon.map(f=>flRow(f)).join("") : `<div class="empty">Nic v příštích 90 minutách.</div>`;
 }
 
 /* ============ RENDER: TABULE ============ */
@@ -547,7 +608,7 @@ function renderBoard(){
   $("#dayChips").innerHTML = days.map(k=>{const d=new Date(k+"T12:00:00"); const lab = k===todayKey()?"Dnes":(k===dayKey(addMin(NOW(),1440))?"Zítra":DNY[d.getDay()]); return `<button class="chip ${k===selDay?"on":""}" data-day="${k}">${lab} ${fmtDate(d)}</button>`;}).join("");
   $$("#dayChips .chip").forEach(c=>c.onclick=()=>{selDay=c.dataset.day; renderBoard();});
   const now=NOW(); const q=query.trim().toLowerCase().replace(/\s+/g,"");
-  let list=flights.filter(f=>dayKey(f.plan)===selDay);
+  let list=flights.filter(f=>dayKey(f.plan)===selDay).sort((a,b)=>sortBy==='eta'?a.eta-b.eta:a.due-b.due);
   if(term) list=list.filter(f=>f.term===term);
   if(only==="late") list=list.filter(f=>f.dev>=10||f.cancelled);
   if(only==="pending") list=list.filter(f=>!f.landed&&f.eta>now&&!f.cancelled);
@@ -562,7 +623,7 @@ function renderBoard(){
 const CITIES = {"londyn":["LHR","LGW","STN","LTN","LCY","SEN"],"london":["LHR","LGW","STN","LTN","LCY"],"pariz":["CDG","ORY","BVA"],"paris":["CDG","ORY","BVA"],"milan":["MXP","LIN","BGY"],"milano":["MXP","LIN","BGY"],"rim":["FCO","CIA"],"roma":["FCO","CIA"],"frankfurt":["FRA","HHN"],"amsterdam":["AMS"],"istanbul":["IST","SAW"],"dubaj":["DXB","DWC"],"dubai":["DXB","DWC"],"telaviv":["TLV"],"moskva":["SVO","DME","VKO"],"newyork":["JFK","EWR"],"soul":["ICN"],"peking":["PEK","PKX"],"tchajpej":["TPE"],"taipei":["TPE"],"doha":["DOH"],"abudhabi":["AUH"],"varsava":["WAW","WMI"],"viden":["VIE"],"curych":["ZRH"],"zurich":["ZRH"],"brusel":["BRU","CRL"],"kodan":["CPH"],"madrid":["MAD"],"barcelona":["BCN"],"manchester":["MAN"],"dublin":["DUB"],"mnichov":["MUC"],"atény":["ATH"],"ateny":["ATH"],"lisabon":["LIS"],"helsinky":["HEL"],"stockholm":["ARN"],"oslo":["OSL"],"edinburgh":["EDI"],"bukurest":["OTP"],"sofie":["SOF"],"belehrad":["BEG"],"riga":["RIX"],"hurghada":["HRG"],"marsaalam":["RMF"],"kahira":["CAI"],"jerevan":["EVN"],"tbilisi":["TBS"],"larnaka":["LCA"],"malaga":["AGP"],"palma":["PMI"],"benatky":["VCE","TSF"],"neapol":["NAP"],"bologna":["BLQ"],"turin":["TRN"],"nice":["NCE"],"lyon":["LYS"],"zeneva":["GVA"],"hamburk":["HAM"],"berlin":["BER"],"dusseldorf":["DUS"],"kolin":["CGN"],"stuttgart":["STR"],"luxemburk":["LUX"],"birmingham":["BHX"],"bristol":["BRS"],"glasgow":["GLA"],"liverpool":["LPL"],"newcastle":["NCL"],"leeds":["LBA"],"belfast":["BFS"],"kyjev":["KBP","IEV"],"kisinev":["RMO","KIV"],"tirana":["TIA"],"skopje":["SKP"],"podgorica":["TGD"],"split":["SPU"],"zadar":["ZAD"],"dubrovnik":["DBV"],"sevilla":["SVQ"],"valencie":["VLC"],"alicante":["ALC"],"bilbao":["BIO"],"porto":["OPO"],"marrakes":["RAK"],"antalya":["AYT"],"baku":["GYD"],"astana":["NQZ"],"almaty":["ALA"],"taskent":["TAS"],"hanoj":["HAN"],"phuquoc":["PQC"],"zanzibar":["ZNZ"],"sharjah":["SHJ"],"sardzah":["SHJ"],"dilli":["DEL"],"bangkok":["BKK"],"kutaisi":["KUT"],"malta":["MLA"],"kreta":["HER","CHQ"],"heraklion":["HER"],"rhodos":["RHO"],"soluň":["SKG"],"solun":["SKG"],"katanie":["CTA"],"palermo":["PMO"],"bari":["BRI"],"eindhoven":["EIN"],"billund":["BLL"],"goteborg":["GOT"],"tallinn":["TLL"],"vilnius":["VNO"],"gdansk":["GDN"],"krakov":["KRK"],"wroclaw":["WRO"],"katovice":["KTW"],"ostrava":["OSR"],"kosice":["KSC"],"brno":["BRQ"],"budapest":["BUD"],"budapest":["BUD"],"lublan":["LJU"],"zahreb":["ZAG"],"sarajevo":["SJJ"]};
 const strip = s => s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9: ]/g,"").trim();
 function say(txt, user){ const d=document.createElement("div"); d.className="ans"+(user?" user":""); d.innerHTML=txt; $("#chat").prepend(d); }
-function listTxt(arr,max=8){ return arr.slice(0,max).map(f=>`${hhmm(f.eta)} ${f.city} <span class="tag ${f.term}">${f.term}</span> ${f.no}${f.dev>=10?` <b style="color:var(--red)">+${f.dev}</b>`:""}${f.cancelled?" <b style=\"color:var(--red)\">zrušen</b>":""} → venku ≈ ${hhmm(f.out)}`).join("\n")+(arr.length>max?`\n… a dalších ${arr.length-max}`:""); }
+function listTxt(arr,max=8){ return arr.slice(0,max).map(f=>`${hhmm(f.eta)} ${f.city} <span class="tag ${f.term}">${f.term}</span> ${f.no}${f.dev>=10?` <b style="color:var(--red)">+${f.dev}</b>`:""}${f.cancelled?" <b style=\"color:var(--red)\">zrušen</b>":""} → buď u ${f.term} v ${hhmm(f.due)}`).join("\n")+(arr.length>max?`\n… a dalších ${arr.length-max}`:""); }
 function answer(qRaw){
   const q=strip(qRaw), qq=q.replace(/\s+/g,""); const now=NOW();
   const act=flights.filter(f=>!f.cancelled&&!f.cargo);
@@ -575,7 +636,7 @@ function answer(qRaw){
     const code=fm[1]+fm[2];
     const hits=flights.filter(f=>f.no.replace(/\s+/g,"")===code || f.no.replace(/\s+/g,"").endsWith(fm[2])&&f.no.startsWith(fm[1]));
     if(hits.length){ const f=hits.find(x=>dayKey(x.plan)===todayKey()&&!x.landed)||hits[0];
-      return `<b>${esc(f.no)} z ${esc(f.city)}</b> · ${f.term==="T1"?"Terminál 1 (mimo Schengen)":"Terminál 2 (Schengen)"}\nPlán ${hhmm(f.plan)}${f.exp?`, očekáváno <b>${hhmm(f.exp)}</b> (${f.dev>0?"+":""}${f.dev} min)`:""}${f.landed?" · už přistál":""}${f.cancelled?" · <b>ZRUŠEN</b>":""}\n${f.cancelled?"":`${esc(f.ac)}, ${f.seats} míst, obsazenost ≈ ${Math.round(f.lf*100)} % → ≈ <b>${f.pax} lidí</b>, kupní síla ${"●".repeat(f.power)}${"○".repeat(5-f.power)}\nNa taxi ≈ <b>${f.taxi} lidí</b> → práce pro ≈ <b>${f.cabs} vozů</b>\nCestující venku ≈ <b>${hhmm(f.out)}</b> → buď u ${f.term} nejpozději v <b>${hhmm(addMin(f.out,-10))}</b>.`}\n${dayKey(f.plan)!==todayKey()?`(let je ${fmtDate(f.plan)})`:""}`; }
+      return `<b>${esc(f.no)} z ${esc(f.city)}</b> · ${f.term==="T1"?"Terminál 1 (mimo Schengen)":"Terminál 2 (Schengen)"}\nPlán ${hhmm(f.plan)}${f.exp?`, očekáváno <b>${hhmm(f.exp)}</b> (${f.dev>0?"+":""}${f.dev} min)`:""}${f.landed?" · už přistál":""}${f.cancelled?" · <b>ZRUŠEN</b>":""}\n${f.cancelled?"":`${esc(f.ac)}, ${f.seats} míst, obsazenost ≈ ${Math.round(f.lf*100)} % → ≈ <b>${f.pax} lidí</b>, kupní síla ${"●".repeat(f.power)}${"○".repeat(5-f.power)}\nNa taxi ≈ <b>${f.taxi} lidí</b> → práce pro ≈ <b>${f.cabs} vozů</b>\nLidi s kufry u taxi ≈ <b>${hhmm(f.out)}</b> (${hhmm(f.first)}–${hhmm(f.last)}) → taxikář má být u ${f.term} v <b>${hhmm(f.due)}</b>.`}\n${dayKey(f.plan)!==todayKey()?`(let je ${fmtDate(f.plan)})`:""}`; }
     if(!/[a-z]{4,}/.test(q)) return `Let <b>${esc(code)}</b> na tabuli (dnes až ${fmtDate(flights[flights.length-1]?.plan||NOW())}) nevidím. Zkontroluj číslo – nebo zkus město, odkud letí.`;
   }
   // 2) kód letiště / město / dopravce
@@ -595,10 +656,10 @@ function answer(qRaw){
     const k1=Math.ceil(w.filter(f=>f.term==="T1").reduce((a,f)=>a+f.taxi,0)/cfg.perCab), k2=Math.ceil(w.filter(f=>f.term==="T2").reduce((a,f)=>a+f.taxi,0)/cfg.perCab);
     return `<b>Příští 2 hodiny:</b> T1 ≈ ${p1} lidí → práce pro ≈ <b>${k1} vozů</b> (${w.filter(f=>f.term==="T1").length} letů), T2 ≈ ${p2} lidí → ≈ <b>${k2} vozů</b> (${w.filter(f=>f.term==="T2").length} letů).\n→ ${k1>k2?"<b>Jeď k T1</b> (mimo Schengen – delší cesta, ale víc dálkových pasažérů s kufry)":"<b>Jeď k T2</b> (Schengen – lidi vycházejí rychle po přistání)"}.${p1&&p2?`\nNejsilnější chvíle: ${hhmm(bestWindows(now,2,1)[0]?.t)}–${hhmm(bestWindows(now,2,1)[0]?.e)}.`:""}`; }
   // 5) klid
-  if(/klid|pauza|prestav|obed|kdy nic|volno|nejmin/.test(q)){ const s=slots(todayKey()); const nowI=now.getHours()*2+(now.getMinutes()>=30?1:0);
-    const quiet=[]; for(let i=nowI;i<48;i++){ if(s[i].T1+s[i].T2<80) { if(quiet.length&&quiet[quiet.length-1].e===i) quiet[quiet.length-1].e=i+1; else quiet.push({s:i,e:i+1}); } }
-    const g=quiet.filter(x=>x.e-x.s>=2).slice(0,3).map(x=>`${pad(Math.floor(x.s/2))}:${x.s%2?"30":"00"}–${pad(Math.floor(x.e/2))}:${x.e%2?"30":"00"}`);
-    return g.length?`<b>Nejklidnější chvíle dnes:</b> ${g.join(", ")}\nTady má smysl pauza nebo centrum.`:"Dnes už se moc klidných hodin nenajde – přílety jedou průběžně."; }
+  if(/klid|pauza|prestav|obed|kdy nic|volno|nejmin/.test(q)){ const t0=f15(now), s=series(t0,60);
+    const quiet=[]; for(let i=0;i<60;i++){ if((s[i].x1+s[i].x2)/cfg.perCab<1){ if(quiet.length&&quiet[quiet.length-1].e===i) quiet[quiet.length-1].e=i+1; else quiet.push({s:i,e:i+1}); } }
+    const g=quiet.filter(x=>x.e-x.s>=4).slice(0,3).map(x=>`${hhmm(addMin(t0,x.s*15))}–${hhmm(addMin(t0,x.e*15))}`);
+    return g.length?`<b>Nejklidnější chvíle (u taxi skoro nikdo):</b> ${g.join(", ")}\nTady má smysl pauza nebo centrum.`:"V příštích 15 hodinách se moc klidných úseků nenajde – lidi vycházejí průběžně."; }
   // 6) kolik / co přistane do hodiny / do HH
   if(/kolik|co pristane|co prileti|do hodiny|pristi|nejbliz/.test(q) || (hourM && /do|kolem|v /.test(q))){
     let to=addMin(now,60); if(hourM){ const h=+hourM[1], m=+(hourM[2]||0); to=new Date(now); to.setHours(h,m,0,0); if(to<now) to=addMin(to,1440); if(/kolem|v /.test(q)&&!/do/.test(q)){ const from=addMin(to,-45), tt=addMin(to,45); const w=act.filter(f=>f.eta>=from&&f.eta<=tt); return w.length?`<b>Kolem ${hhmm(to)} (±45 min): ${w.length} letů, ≈ ${w.reduce((a,f)=>a+f.pax,0)} lidí</b>\n${listTxt(w,12)}`:`Kolem ${hhmm(to)} nic nepřistává.`; } }
@@ -613,20 +674,20 @@ function answer(qRaw){
   if(/kdy|nejlep|spick|doporuc|kam|mam jet|jet|prijet|ted|teď/.test(q) || true){
     const w=bestWindows(now,4,3); if(!w.length) return "V příštích 4 hodinách už nic velkého nepřistává. Zkus „zítra ráno“.";
     const b=w.sort((a,c)=>c.x-a.x)[0]; const T=b.x1>b.x2?"T1":"T2";
-    return `<b>Buď u ${T} v ${hhmm(addMin(b.t,-10))}.</b>\nMezi ${hhmm(b.t)} a ${hhmm(b.e)} vyjde ≈ ${b.p} lidí z ${b.fl.length} letadel (${[...new Set(b.fl.map(f=>f.city))].slice(0,4).join(", ")}), z nich ≈ ${b.x} si vezme taxi → práce pro ≈ <b>${T==="T1"?b.c1:b.c2} vozů u ${T}</b>.\nDalší okna: ${w.filter(x=>x!==b).sort((a,c)=>a.t-c.t).map(x=>`${hhmm(x.t)} ${x.x1>x.x2?"T1":"T2"} (≈${Math.max(x.c1,x.c2)} vozů)`).join(", ")||"–"}\nOdhad z typu letů; živé odchylky sleduj v záložce Teď.`; }
+    return `<b>Buď u ${T} v ${hhmm(addMin(b.t,-cfg.lead))}.</b>\nMezi ${hhmm(b.t)} a ${hhmm(b.e)} u taxi s kufry ≈ ${Math.round(b.p)} lidí z ${b.fl.length} letadel (${[...new Set(b.fl.map(f=>f.city))].slice(0,4).join(", ")}), z nich ≈ ${b.x} si vezme taxi → práce pro ≈ <b>${T==="T1"?b.c1:b.c2} vozů u ${T}</b>.\nDalší okna: ${w.filter(x=>x!==b).sort((a,c)=>a.t-c.t).map(x=>`${hhmm(x.t)} ${x.x1>x.x2?"T1":"T2"} (≈${Math.max(x.c1,x.c2)} vozů)`).join(", ")||"–"}\nOdhad z typu letů; živé odchylky sleduj v záložce Teď.`; }
 }
 function ask(txt){ if(!txt.trim()) return; say(esc(txt),true); try{ say(answer(txt)); }catch(e){ say("Tomu nerozumím. Zkus číslo letu, město nebo „kdy mám přijet“."); } $("#ask").value=""; }
 
 /* ============ NASTAVENÍ ============ */
 function renderSet(){
-  for(const k of ["offT1","offT2","lfMul","shareMul","perCab","refresh"]){ const el=$("#"+k); el.value=cfg[k]; $("#"+k+"v").textContent=(k==="lfMul"||k==="shareMul")?"×"+cfg[k].toFixed(2):(k==="perCab"?cfg[k].toFixed(1)+" os.":cfg[k]+" min"); }
+  for(const k of SETK){ const el=$("#"+k); el.value=cfg[k]; $("#"+k+"v").textContent=(k==="lfMul"||k==="shareMul")?"×"+cfg[k].toFixed(2):(k==="perCab"?cfg[k].toFixed(1)+" os.":cfg[k]+" min"); }
 }
-function saveCfg(){ try{ localStorage.setItem("tm_cfg",JSON.stringify(cfg)); }catch(e){} }
+function saveCfg(){ try{ localStorage.setItem("tm_cfg2",JSON.stringify(cfg)); }catch(e){} }
 
 /* ============ HLAVNÍ RENDER ============ */
 function renderAll(){
   srcBadge(); renderNow(); renderBoard(); renderSet();
-  $("#foot").innerHTML = `Odhady „lidi venku“: T2 +${cfg.offT2} min, T1 +${cfg.offT1} min po přistání · ${flights.length} letů v paměti · ${source==="live"?"živě":"offline"}`;
+  $("#foot").innerHTML = `Lidi s kufry u taxi: T2 +${cfg.offT2} min, T1 +${cfg.offT1} min po očekávaném přistání (±${cfg.spread}) · ${flights.length} letů v paměti · ${source==="live"?"živě":"offline"}`;
 }
 function tick(){ const n=NOW(); $("#clock").textContent=hhmm(n); $("#date").textContent=`${DNY[n.getDay()]} ${fmtDate(n)}${n.getFullYear()}`; }
 function schedule(){ if(timer) clearInterval(timer); timer=setInterval(()=>load(false), cfg.refresh*60000); }
@@ -639,7 +700,10 @@ $("#q").oninput=e=>{query=e.target.value; renderBoard();};
 $("#askBtn").onclick=()=>ask($("#ask").value);
 $("#ask").onkeydown=e=>{ if(e.key==="Enter") ask($("#ask").value); };
 $$(".chip.ask").forEach(c=>c.onclick=()=>ask(c.textContent));
-for(const k of ["offT1","offT2","lfMul","shareMul","perCab","refresh"]){ $("#"+k).oninput=e=>{ cfg[k]=+e.target.value; saveCfg(); flights=normalize(flights.map(f=>({time:f.plan.toISOString(),"time-new":f.exp?f.exp.toISOString():null,flyNumber:f.no,destination:f.dest,"destination-id":f.code,state:f.st,terminal:f.term,company:f.comp,isMainFlight:true}))); renderAll(); if(k==="refresh") schedule(); }; }
+for(const k of SETK){ $("#"+k).oninput=e=>{ cfg[k]=+e.target.value; saveCfg(); flights=normalize(rawFlights); renderAll(); if(k==="refresh") schedule(); }; }
+$$("#waveChips .chip").forEach(c=>c.onclick=()=>{ wTerm=c.dataset.w; $$("#waveChips .chip").forEach(x=>x.classList.toggle("on",x===c)); renderNow(); });
+$$("#rangeChips .chip").forEach(c=>c.onclick=()=>{ chartRange=c.dataset.r; selBar=null; $$("#rangeChips .chip").forEach(x=>x.classList.toggle("on",x===c)); renderChart(); });
+$$("#v-board .chip[data-sort]").forEach(c=>c.onclick=()=>{ sortBy=c.dataset.sort; $$("#v-board .chip[data-sort]").forEach(x=>x.classList.toggle("on",x===c)); renderBoard(); });
 $("#proxy").value=cfg.proxy||""; $("#proxySave").onclick=()=>{ cfg.proxy=$("#proxy").value.trim(); saveCfg(); toast("Uloženo, načítám"); load(true); };
 $("#reset").onclick=()=>{ cfg=Object.assign({},DEF); saveCfg(); location.reload(); };
 // hlasový vstup (Android Chrome)
@@ -648,7 +712,7 @@ if(SR){ const m=$("#mic"); m.style.display=""; m.onclick=()=>{ try{ const r=new 
 document.addEventListener("visibilitychange",()=>{ if(!document.hidden && Date.now()-lastLoad>60000) load(false); });
 
 tick(); setInterval(tick,1000);
-setInterval(()=>{ if(flights.length) renderNow(); },30000);
+setInterval(()=>{ if(rawFlights.length){ flights=normalize(rawFlights); renderAll(); } },30000);
 load(false); schedule();
 const _ask=(location.search.match(/[?&]ask=([^&]+)/)||null); if(_ask){ setTimeout(()=>{ $$("nav button")[2].click(); ["kdy mám přijet","T1 nebo T2","OK 617","Let z Londýna","zpoždění","kdy je klid","zítra ráno","co přistane do 16"].forEach(q=>ask(q)); },1500); }
 </script>
