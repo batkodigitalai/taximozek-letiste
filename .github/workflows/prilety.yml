@@ -47,4 +47,13 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           sleep 30
-          gh workflow run prilety.yml --ref main
+          # Při výpadku GitHubu (např. HTTP 502) zkusit znovu, jinak se řetěz běhů přetrhne.
+          for i in 1 2 3 4 5 6 7 8; do
+            if gh workflow run prilety.yml --ref main; then
+              echo "další běh spuštěn (pokus $i)"; exit 0
+            fi
+            echo "spuštění selhalo (pokus $i), čekám $((i*30)) s"
+            sleep $((i*30))
+          done
+          echo "další běh se nepodařilo spustit – záchranou je plán cron každých 20 min"
+          exit 1
